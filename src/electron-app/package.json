@@ -1,0 +1,38 @@
+{
+  "name": "rae-electron",
+  "version": "1.0.0",
+  "description": "Rae Agent Electron Tray Interface",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "postinstall": "cd ../agent && cargo build --release"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "menubar": "^9.5.1",
+    "node-notifier": "^10.0.1"
+  },
+  "build": {
+    "appId": "com.rae.agent",
+    "productName": "Rae Agent",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "package.json",
+      "../agent/target/release/rae-agent"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    }
+  }
+}

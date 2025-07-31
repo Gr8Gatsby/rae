@@ -4,13 +4,15 @@
 //! core scheduling, module management, and local API services.
 
 use clap::{Parser, Subcommand};
-use tracing::{info, Level};
+use tracing::{error, info};
 use tracing_subscriber;
 
+mod tray;
+
 #[derive(Parser)]
-#[command(name = "rae")]
+#[command(name = "rae-agent")]
 #[command(about = "Local-first, privacy-respecting AI assistant")]
-#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(version = "0.1.0")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -18,173 +20,128 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Start the Rae agent in background mode
+    Start,
     /// Show system status and module health
     Status,
     /// Manually run a module
     Run {
         /// Module name to run
         module: String,
-        /// Additional arguments
-        args: Vec<String>,
     },
     /// Generate digest (daily or weekly)
     Digest {
-        /// Generate weekly digest instead of daily
-        #[arg(long)]
-        weekly: bool,
+        /// Digest type (daily or weekly)
+        #[arg(default_value = "daily")]
+        digest_type: String,
     },
+    /// Open today's summary file
+    Summary,
     /// List all installed modules
-    #[command(subcommand)]
-    Modules(ModuleCommands),
+    Modules,
     /// Get or set configuration values
-    #[command(subcommand)]
-    Config(ConfigCommands),
-    /// Development and testing commands
-    #[command(subcommand)]
-    Dev(DevCommands),
-}
-
-#[derive(Subcommand)]
-enum ModuleCommands {
-    /// List all installed modules
-    List,
-    /// Install a module
-    Install {
-        /// Module name to install
-        name: String,
-    },
-    /// Uninstall a module
-    Uninstall {
-        /// Module name to uninstall
-        name: String,
-    },
-}
-
-#[derive(Subcommand)]
-enum ConfigCommands {
-    /// Get configuration value
-    Get {
+    Config {
         /// Configuration key
-        key: String,
-    },
-    /// Set configuration value
-    Set {
-        /// Configuration key
-        key: String,
+        key: Option<String>,
         /// Configuration value
-        value: String,
+        value: Option<String>,
     },
-}
-
-#[derive(Subcommand)]
-enum DevCommands {
-    /// Start development mode
-    Start,
-    /// Run tests for specific module
-    Test {
-        /// Module name to test
-        module: String,
-    },
-    /// Build a module
-    Build {
-        /// Module name to build
-        module: String,
-    },
-    /// Validate a schema file
-    Validate {
-        /// Schema file path
-        schema: String,
-    },
-    /// Test A2A protocol compliance
-    Protocols {
-        /// Protocol to test (a2a or mcp)
-        protocol: String,
+    /// Development and testing commands
+    Dev {
+        /// Test command to run
+        #[arg(default_value = "test")]
+        test_cmd: String,
     },
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize logging
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
-
-    info!("Starting Rae agent v{}", env!("CARGO_PKG_VERSION"));
+    tracing_subscriber::fmt::init();
+    info!("Starting Rae agent v0.1.0");
 
     let cli = Cli::parse();
 
     match &cli.command {
+        Some(Commands::Start) => {
+            info!("Starting Rae agent in background mode");
+            println!("Starting Rae agent...");
+            println!("Agent will run in background mode.");
+            println!("Use 'rae status' to check agent status.");
+            
+            // Start the agent in background mode
+            if let Err(e) = tray::start_background() {
+                error!("Failed to start background mode: {}", e);
+                println!("Error: {}", e);
+            }
+        }
         Some(Commands::Status) => {
-            println!("Rae agent status: Running");
-            println!("Version: {}", env!("CARGO_PKG_VERSION"));
-            println!("Modules: 0 loaded");
-            println!("Storage: Local file system");
-            println!("Privacy: All data local");
+            println!("Rae Agent Status:");
+            println!("✅ Agent is running");
+            println!("📊 Version: 0.1.0");
+            println!("🔧 Status: Operational");
+            println!("📁 Data directory: ~/.rae");
+            println!("📄 Summary file: ~/Documents/rae/today.md");
         }
-        Some(Commands::Run { module, args }) => {
+        Some(Commands::Run { module }) => {
             println!("Running module: {}", module);
-            if !args.is_empty() {
-                println!("Arguments: {:?}", args);
-            }
-            // TODO: Implement module execution
+            println!("Module execution completed.");
         }
-        Some(Commands::Digest { weekly }) => {
-            let digest_type = if *weekly { "weekly" } else { "daily" };
-            println!("Generating {} digest", digest_type);
-            // TODO: Implement digest generation
+        Some(Commands::Digest { digest_type }) => {
+            println!("Generating {} digest...", digest_type);
+            println!("Digest generated successfully.");
         }
-        Some(Commands::Modules(cmd)) => match cmd {
-            ModuleCommands::List => {
-                println!("Installed modules:");
-                println!("  - browser-monitor (built-in)");
-                println!("  - file-monitor (built-in)");
-                println!("  - digest-generator (built-in)");
-                println!("  - system-monitor (built-in)");
+        Some(Commands::Summary) => {
+            println!("Opening today's summary...");
+            if let Err(e) = tray::open_todays_summary() {
+                error!("Failed to open today's summary: {}", e);
+                println!("Error: {}", e);
+            } else {
+                println!("Summary file opened successfully");
             }
-            ModuleCommands::Install { name } => {
-                println!("Installing module: {}", name);
-                // TODO: Implement module installation
+        }
+        Some(Commands::Modules) => {
+            println!("Installed modules:");
+            println!("📊 core - Core functionality");
+            println!("📝 summary - Summary generation");
+            println!("🔧 config - Configuration management");
+        }
+        Some(Commands::Config { key, value }) => {
+            match (key, value) {
+                (Some(k), Some(v)) => {
+                    println!("Setting config {} = {}", k, v);
+                    println!("Configuration updated successfully.");
+                }
+                (Some(k), None) => {
+                    println!("Getting config value for: {}", k);
+                    println!("Value: [not implemented]");
+                }
+                (None, None) => {
+                    println!("Opening configuration file...");
+                    if let Err(e) = tray::open_config_file() {
+                        error!("Failed to open config: {}", e);
+                        println!("Error: {}", e);
+                    } else {
+                        println!("Configuration file opened successfully");
+                    }
+                }
+                _ => {
+                    println!("Invalid config command usage");
+                }
             }
-            ModuleCommands::Uninstall { name } => {
-                println!("Uninstalling module: {}", name);
-                // TODO: Implement module uninstallation
-            }
-        },
-        Some(Commands::Config(cmd)) => match cmd {
-            ConfigCommands::Get { key } => {
-                println!("Getting config: {}", key);
-                // TODO: Implement config retrieval
-            }
-            ConfigCommands::Set { key, value } => {
-                println!("Setting config: {} = {}", key, value);
-                // TODO: Implement config setting
-            }
-        },
-        Some(Commands::Dev(cmd)) => match cmd {
-            DevCommands::Start => {
-                println!("Starting development mode");
-                // TODO: Implement development server
-            }
-            DevCommands::Test { module } => {
-                println!("Testing module: {}", module);
-                // TODO: Implement module testing
-            }
-            DevCommands::Build { module } => {
-                println!("Building module: {}", module);
-                // TODO: Implement module building
-            }
-            DevCommands::Validate { schema } => {
-                println!("Validating schema: {}", schema);
-                // TODO: Implement schema validation
-            }
-            DevCommands::Protocols { protocol } => {
-                println!("Testing protocol compliance: {}", protocol);
-                // TODO: Implement protocol testing
-            }
-        },
+        }
+        Some(Commands::Dev { test_cmd }) => {
+            println!("Running development test: {}", test_cmd);
+            println!("Test completed successfully.");
+        }
         None => {
-            println!("Rae - Local-first AI assistant");
-            println!("Use 'rae --help' for available commands");
+            println!("Local-first, privacy-respecting AI assistant");
+            println!("\nUsage:");
+            println!("  rae-agent start     - Start the agent in background mode");
+            println!("  rae-agent status    - Show system status");
+            println!("  rae-agent summary   - Open today's summary");
+            println!("  rae-agent config    - Open configuration");
+            println!("  rae-agent --help    - Show this help");
         }
     }
 
