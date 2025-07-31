@@ -37,14 +37,14 @@ pub enum ExecutorError {
 
 /// Job executor with thread pool and retry logic.
 pub struct JobExecutor {
-    /// Thread pool for job execution
-    runtime: tokio::runtime::Runtime,
     /// Channel for job execution requests
     job_sender: mpsc::Sender<JobExecutionRequest>,
     /// Running jobs
     running_jobs: Arc<RwLock<HashMap<JobId, RunningJob>>>,
     /// Job results
     job_results: Arc<RwLock<HashMap<JobId, JobResult>>>,
+    /// Shutdown signal
+    shutdown: Arc<RwLock<bool>>,
 }
 
 /// Request to execute a job.
@@ -65,25 +65,26 @@ struct RunningJob {
 impl JobExecutor {
     /// Creates a new job executor.
     pub fn new() -> Self {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
         let (job_sender, job_receiver) = mpsc::channel(100);
         let running_jobs = Arc::new(RwLock::new(HashMap::new()));
         let job_results = Arc::new(RwLock::new(HashMap::new()));
+        let shutdown = Arc::new(RwLock::new(false));
         
         let executor = JobExecutor {
-            runtime,
             job_sender,
             running_jobs,
             job_results,
+            shutdown,
         };
         
         // Start the job processing loop
         let running_jobs_clone = executor.running_jobs.clone();
         let job_results_clone = executor.job_results.clone();
         let job_sender_clone = executor.job_sender.clone();
+        let shutdown_clone = executor.shutdown.clone();
         
-        executor.runtime.spawn(async move {
-            Self::process_jobs(job_receiver, job_sender_clone, running_jobs_clone, job_results_clone).await;
+        tokio::spawn(async move {
+            Self::process_jobs(job_receiver, job_sender_clone, running_jobs_clone, job_results_clone, shutdown_clone).await;
         });
         
         executor
@@ -97,6 +98,8 @@ impl JobExecutor {
     
     /// Stops the executor.
     pub async fn stop(&self) -> Result<(), ExecutorError> {
+        let mut shutdown = self.shutdown.write().await;
+        *shutdown = true;
         info!("Job executor stopped");
         Ok(())
     }
@@ -195,8 +198,13 @@ impl JobExecutor {
         job_sender: mpsc::Sender<JobExecutionRequest>,
         running_jobs: Arc<RwLock<HashMap<JobId, RunningJob>>>,
         job_results: Arc<RwLock<HashMap<JobId, JobResult>>>,
+        shutdown: Arc<RwLock<bool>>,
     ) {
         while let Some(request) = job_receiver.recv().await {
+            // Check if we should shutdown
+            if *shutdown.read().await {
+                break;
+            }
             let job_id = request.job.id.clone();
             
             // Add to running jobs
@@ -392,8 +400,8 @@ mod tests {
         assert!(matches!(status, JobStatus::Failed { .. }));
     }
     
-    #[test]
-    fn test_validate_job() {
+    #[tokio::test]
+    async fn test_validate_job() {
         let executor = JobExecutor::new();
         
         // Valid job
