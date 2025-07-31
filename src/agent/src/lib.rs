@@ -3,20 +3,6 @@
 //! Core library for the Rae agent, providing the foundation for
 //! local-first, privacy-respecting AI assistance.
 
-pub mod cli;
-pub mod core;
-pub mod api;
-pub mod modules;
-pub mod schemas;
-pub mod ui;
-pub mod tests;
-
-// Re-export main types for convenience
-pub use core::agent::Agent;
-pub use core::scheduler::Scheduler;
-pub use core::storage::Storage;
-pub use modules::ModuleManager;
-
 /// Current version of the Rae agent
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -53,65 +39,46 @@ pub mod config {
 
 /// Error types for the Rae agent
 pub mod error {
-    use thiserror::Error;
-
-    #[derive(Error, Debug)]
+    #[derive(Debug)]
     pub enum RaeError {
-        #[error("Configuration error: {0}")]
         Config(String),
-        #[error("Module error: {0}")]
         Module(String),
-        #[error("Storage error: {0}")]
         Storage(String),
-        #[error("Schema validation error: {0}")]
         Schema(String),
-        #[error("Security error: {0}")]
         Security(String),
-        #[error("Protocol error: {0}")]
         Protocol(String),
-        #[error("IO error: {0}")]
-        Io(#[from] std::io::Error),
-        #[error("Serialization error: {0}")]
-        Serialization(#[from] serde_json::Error),
+        Io(std::io::Error),
+        Serialization(serde_json::Error),
+    }
+
+    impl std::fmt::Display for RaeError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                RaeError::Config(msg) => write!(f, "Configuration error: {}", msg),
+                RaeError::Module(msg) => write!(f, "Module error: {}", msg),
+                RaeError::Storage(msg) => write!(f, "Storage error: {}", msg),
+                RaeError::Schema(msg) => write!(f, "Schema validation error: {}", msg),
+                RaeError::Security(msg) => write!(f, "Security error: {}", msg),
+                RaeError::Protocol(msg) => write!(f, "Protocol error: {}", msg),
+                RaeError::Io(err) => write!(f, "IO error: {}", err),
+                RaeError::Serialization(err) => write!(f, "Serialization error: {}", err),
+            }
+        }
+    }
+
+    impl std::error::Error for RaeError {}
+
+    impl From<std::io::Error> for RaeError {
+        fn from(err: std::io::Error) -> Self {
+            RaeError::Io(err)
+        }
+    }
+
+    impl From<serde_json::Error> for RaeError {
+        fn from(err: serde_json::Error) -> Self {
+            RaeError::Serialization(err)
+        }
     }
 
     pub type Result<T> = std::result::Result<T, RaeError>;
-}
-
-/// Common types used throughout the agent
-pub mod types {
-    use serde::{Deserialize, Serialize};
-    use std::collections::HashMap;
-
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct ModuleInfo {
-        pub name: String,
-        pub version: String,
-        pub description: String,
-        pub permissions: Vec<String>,
-        pub status: ModuleStatus,
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub enum ModuleStatus {
-        Active,
-        Inactive,
-        Error(String),
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct ActivityData {
-        pub timestamp: chrono::DateTime<chrono::Utc>,
-        pub module: String,
-        pub data: HashMap<String, serde_json::Value>,
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct Digest {
-        pub period: String,
-        pub start_date: chrono::DateTime<chrono::Utc>,
-        pub end_date: chrono::DateTime<chrono::Utc>,
-        pub activities: Vec<ActivityData>,
-        pub summary: String,
-    }
 } 
