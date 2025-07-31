@@ -39,6 +39,16 @@
 - [ ] Real-time job status updates
 - [ ] Job history and logging
 
+### **Cross-Platform Requirements:**
+- [ ] Platform-agnostic job scheduling with platform-specific adapters
+- [ ] Timezone-aware scheduling with proper DST handling
+- [ ] Platform-specific file system monitoring APIs
+- [ ] Native logging integration (syslog, Event Log, Console)
+- [ ] Platform-appropriate background process management
+- [ ] Cross-platform JSON job persistence
+- [ ] Async job execution with Tokio runtime
+- [ ] Native Rust process spawning across platforms
+
 ### **Schema Requirements:**
 - **Schema File:** `/schemas/scheduler/job.json`
 - **Schema Description:** Defines job configuration, scheduling, and execution state
@@ -109,10 +119,12 @@
 ## 🔧 **Technical Details**
 
 ### **Dependencies:**
-- `tokio` - Async runtime for job execution
-- `serde` - JSON serialization for job persistence
-- `chrono` - Time handling and cron parsing
-- `tracing` - Logging and metrics
+- `tokio` - Async runtime for cross-platform job execution
+- `serde` - JSON serialization for platform-agnostic job persistence
+- `chrono` - Timezone-aware time handling and cron parsing
+- `tracing` - Cross-platform logging and metrics
+- `notify` - Cross-platform file system monitoring
+- `tracing-subscriber` - Platform-specific logging integration
 
 ### **Files to Create/Modify:**
 - `src/agent/src/scheduler/mod.rs` - Main scheduler module
@@ -182,6 +194,9 @@ pub struct Job {
 - [ ] Memory usage under 50MB
 - [ ] Thread-safe operation
 - [ ] Schema validation compliance
+- [ ] Cross-platform compatibility (macOS, Linux, Windows)
+- [ ] Timezone and DST handling
+- [ ] Platform-specific logging integration
 
 ## 🔗 **Related Work Items**
 
@@ -197,11 +212,12 @@ pub struct Job {
 ## 📝 **Implementation Notes**
 
 ### **Design Decisions:**
-- **Rust implementation:** Leverages existing Rust CLI infrastructure
-- **Async/await:** Uses tokio for efficient job execution
-- **JSON persistence:** Simple, human-readable job storage
-- **Thread pool:** Configurable thread pool for job execution
-- **Cron-like syntax:** Familiar scheduling interface
+- **Rust implementation:** Leverages existing Rust CLI infrastructure with cross-platform support
+- **Async/await:** Uses tokio for efficient cross-platform job execution
+- **JSON persistence:** Simple, human-readable, platform-agnostic job storage
+- **Thread pool:** Configurable thread pool for job execution across platforms
+- **Cron-like syntax:** Familiar scheduling interface with timezone support
+- **Platform adapters:** Platform-specific implementations for file monitoring and logging
 
 ### **Trade-offs:**
 - **Simple persistence:** JSON files vs database (chosen for simplicity)
