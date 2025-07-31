@@ -1,8 +1,19 @@
 # Work Items & Development Tracking
 
-## 🎯 **Current Sprint: Electron Menu Bar App**
+## 🎯 **Current Sprint: Core System Implementation**
 
 ### ✅ **Completed Items:**
+
+#### **UI-001: Electron Menu Bar App (MVP)**
+- **Status:** ✅ Complete
+- **Description:** Cross-platform menu bar interface
+- **Files:** `src/electron-app/simple-menu-bar.js`
+- **Features:**
+  - Custom icon support
+  - Status indicator in menu
+  - Integration with Rust CLI
+  - macOS menu bar / Windows/Linux tray
+- **Functional Spec Compliance:** ✅ UI Philosophy section
 
 #### **RUST-001: Core CLI Backend**
 - **Status:** ✅ Complete
@@ -13,61 +24,77 @@
   - `rae-agent config` - Opens configuration
   - `rae-agent status` - Shows agent health
   - `rae-agent start` - Background mode
-
-#### **UI-001: Electron Menu Bar App**
-- **Status:** ✅ Complete
-- **Description:** Cross-platform menu bar interface
-- **Files:** `src/electron-app/simple-menu-bar.js`
-- **Features:**
-  - Custom icon support
-  - Status indicator in menu
-  - Integration with Rust CLI
-  - macOS menu bar / Windows/Linux tray
+- **Functional Spec Compliance:** ✅ CLI & Local API Surface section
 
 #### **ARCH-001: Integration Architecture**
 - **Status:** ✅ Complete
 - **Description:** Electron + Rust integration
 - **Pattern:** UI (Electron) + Backend (Rust)
 - **Communication:** `spawn()` calls between layers
+- **Functional Spec Compliance:** ✅ System Architecture section
 
 ### 🔄 **In Progress:**
 
-#### **UI-002: Status Indicator Enhancement**
-- **Status:** 🔄 In Progress
-- **Description:** Improve status visibility
+#### **CORE-001: Scheduler Implementation**
+- **Status:** 🔄 Planning
+- **Description:** Core scheduler for job management
+- **Functional Spec Reference:** Section 11 - Scheduling & Automation Engine
 - **Tasks:**
-  - [ ] Add colored dot overlay on icon
-  - [ ] Test status updates
-  - [ ] Verify cross-platform behavior
+  - [ ] Implement cron-like syntax parser
+  - [ ] Add job queuing and retry logic
+  - [ ] Create job persistence layer
+  - [ ] Add error recovery mechanisms
+  - [ ] Implement scheduled job execution
+- **Schema:** `/schemas/scheduler/job.json`
+- **Priority:** HIGH
+
+#### **CORE-002: Module Runner**
+- **Status:** 🔄 Planning  
+- **Description:** Sandboxed module execution environment
+- **Functional Spec Reference:** Section 4 - Module System
+- **Tasks:**
+  - [ ] Implement module loading system
+  - [ ] Add sandboxed execution environment
+  - [ ] Create permission system
+  - [ ] Add module lifecycle management
+  - [ ] Implement error isolation
+- **Schema:** `/schemas/runner/module.json`
+- **Priority:** HIGH
 
 ### 📋 **Backlog:**
 
-#### **DEV-001: Development Setup**
+#### **MODULE-001: Built-in Modules**
 - **Status:** 📋 Backlog
-- **Description:** Improve development workflow
+- **Description:** Essential monitoring modules
+- **Functional Spec Reference:** Section 4 - Built-in Modules
 - **Tasks:**
-  - [ ] Add development scripts
-  - [ ] Setup hot reload for Electron
-  - [ ] Add debugging tools
-  - [ ] Create development documentation
+  - [ ] Browser Monitor (`modules/browser-monitor`)
+  - [ ] File Activity Monitor (`modules/file-monitor`)
+  - [ ] Daily Digest Generator (`modules/digest-generator`)
+  - [ ] System Usage Monitor (`modules/system-monitor`)
+- **Priority:** MEDIUM
 
-#### **TEST-001: Testing Infrastructure**
+#### **STORAGE-001: Storage Engine**
 - **Status:** 📋 Backlog
-- **Description:** Add comprehensive testing
+- **Description:** Local file-based storage with schemas
+- **Functional Spec Reference:** Section 13 - Storage & Message Schema
 - **Tasks:**
-  - [ ] Unit tests for Rust CLI
-  - [ ] Integration tests for Electron + Rust
-  - [ ] End-to-end testing
-  - [ ] Performance testing
+  - [ ] Implement schema-first storage
+  - [ ] Add encryption for sensitive data
+  - [ ] Create backup and recovery
+  - [ ] Add versioned schema support
+- **Priority:** MEDIUM
 
-#### **DEPLOY-001: Distribution**
+#### **PROTOCOL-001: A2A Protocol**
 - **Status:** 📋 Backlog
-- **Description:** Package and distribute app
+- **Description:** Agent2Agent protocol implementation
+- **Functional Spec Reference:** Section 8 - Protocol Support
 - **Tasks:**
-  - [ ] Build scripts for different platforms
-  - [ ] Code signing setup
-  - [ ] App store preparation
-  - [ ] Auto-update mechanism
+  - [ ] Implement A2A server capabilities
+  - [ ] Add A2A client functionality
+  - [ ] Create protocol security layer
+  - [ ] Add external agent coordination
+- **Priority:** LOW
 
 ## 🏗️ **Branch Strategy:**
 
@@ -76,10 +103,10 @@
 - `develop` - Integration branch
 
 ### **Feature Branches:**
-- `feature/electron-menu-bar-app` - Current work
-- `feature/status-indicator` - Status improvements
-- `feature/testing` - Test infrastructure
-- `feature/deployment` - Distribution setup
+- `feature/electron-menu-bar-app` - ✅ Complete (MVP)
+- `feature/core-scheduler` - Next priority
+- `feature/module-runner` - Core system
+- `feature/built-in-modules` - Monitoring modules
 
 ### **Branch Naming Convention:**
 - `feature/[component]-[description]`
@@ -94,9 +121,21 @@
 - 🚫 **Blocked** - Waiting for dependencies
 - ❌ **Cancelled** - No longer needed
 
-## 🎯 **Next Steps:**
+## 🎯 **Next Steps (Phase 1 Priority):**
 
-1. **Complete UI-002** - Enhance status indicator
-2. **Start DEV-001** - Improve development setup
-3. **Plan TEST-001** - Add testing infrastructure
-4. **Prepare DEPLOY-001** - Distribution strategy 
+1. **Start CORE-001** - Implement core scheduler (foundation for all automation)
+2. **Start CORE-002** - Implement module runner (required for all modules)
+3. **Plan MODULE-001** - Build essential monitoring modules
+4. **Prepare STORAGE-001** - Add proper data storage
+
+## 📋 **Functional Spec Compliance:**
+
+### **✅ Completed Sections:**
+- Section 14: CLI & Local API Surface (MVP)
+- Section 12: UI Philosophy (Electron app)
+- Section 3: System Architecture (Integration)
+
+### **🔄 Next Priority Sections:**
+- Section 11: Scheduling & Automation Engine (CORE-001)
+- Section 4: Module System (CORE-002)
+- Section 13: Storage & Message Schema (STORAGE-001) 
