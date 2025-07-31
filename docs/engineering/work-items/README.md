@@ -24,7 +24,7 @@ This directory contains individual work item files for each feature, organized b
 ## 📁 **Current Work Items**
 
 ### **✅ Completed:**
-- `HIGH-UI-001-electron-menu-bar-app.md` - MVP Electron app
+- `HIGH-UI-001-electron-menu-bar-app.md` - Cross-platform menu bar app with Rust integration
 - `HIGH-RUST-001-core-cli-backend.md` - Rust CLI implementation
 
 ### **🔄 In Progress:**
