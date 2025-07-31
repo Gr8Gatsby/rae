@@ -1,0 +1,5 @@
+---
+description: commit main feature
+alwaysApply: false
+---
+Each commit must use a scoped prefix (feat(scope): ...) and include a work item ID (e.g., #123). Commits to main are only allowed through CI.

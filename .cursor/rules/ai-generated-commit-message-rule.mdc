@@ -1,0 +1,6 @@
+---
+description: commit message
+alwaysApply: false
+relatedSpec: ./rae_engineering_standards.md#📋-work-tracking--history
+---
+The AI must write commit messages in the format: 'feat(module): short action summary (#workItem)' — no generic messages.

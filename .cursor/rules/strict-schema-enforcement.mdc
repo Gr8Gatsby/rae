@@ -1,0 +1,6 @@
+---
+description: strict schema enforcement
+alwaysApply: false
+relatedSpec: ./rae_engineering_standards.md#🧱-schema--messaging
+---
+All data passed between modules must conform to defined schemas in /schemas. The AI must reject code generation if no schema exists.

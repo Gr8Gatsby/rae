@@ -1,0 +1,6 @@
+---
+description: all modules must include tests
+alwaysApply: false
+relatedSpec: ./rae_engineering_standards.md#🧪-testing-standards
+---
+All new modules must include tests. The AI must refuse to check in untested logic and flag missing test coverage.

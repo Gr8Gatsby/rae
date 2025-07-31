@@ -1,0 +1,6 @@
+---
+description: no side effects in main modules
+alwaysApply: false
+relatedSpec: ./rae_engineering_standards.md#🔐-security-ruleset
+---
+Core modules must be pure by default. Side-effecting code (file I/O, network access) must be isolated and testable.

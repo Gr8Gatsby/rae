@@ -1,0 +1,6 @@
+---
+description: minimal dependencies
+alwaysApply: false
+relatedSpec: ./rae_engineering_standards.md#📦-dependency-governance
+---
+No third-party library may be added without updating /docs/DEPENDENCIES.md. AI must propose a justification for new dependencies.
