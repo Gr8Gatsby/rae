@@ -1,0 +1,25 @@
+{
+  "name": "rae",
+  "version": "0.1.0",
+  "description": "Local-first, privacy-respecting AI assistant",
+  "scripts": {
+    "dev:rust": "cd src/agent && cargo run",
+    "dev:electron": "cd src/electron-app && npm start",
+    "dev": "concurrently \"npm run dev:rust\" \"npm run dev:electron\"",
+    "build:rust": "cd src/agent && cargo build --release",
+    "build:electron": "cd src/electron-app && npm run build",
+    "build": "npm run build:rust && npm run build:electron",
+    "test:rust": "cd src/agent && cargo test",
+    "test:electron": "cd src/electron-app && npm test",
+    "test": "npm run test:rust && npm run test:electron",
+    "start": "cd src/electron-app && ./node_modules/.bin/electron simple-menu-bar.js",
+    "install:all": "npm install && cd src/electron-app && npm install",
+    "clean": "cd src/agent && cargo clean && cd ../electron-app && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  },
+  "workspaces": [
+    "src/electron-app"
+  ]
+} 
