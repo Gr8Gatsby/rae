@@ -260,15 +260,15 @@ pub struct Job {
 - JSON-based job persistence
 - Async job execution framework
 - Job monitoring framework
+- **All 23 scheduler tests passing**
+- **Fixed executor and monitor test failures**
 
 **🔄 IN PROGRESS:**
-- Fixing executor test failures (Tokio runtime issues)
-- Fixing monitor test timeouts (async deadlocks)
 - Integration with existing CLI commands
 - Integration with Electron UI
+- Schema validation implementation
 
 **⏳ PENDING:**
-- Schema validation implementation
 - Cross-platform file system monitoring
 - Platform-specific logging integration
 - End-to-end testing
@@ -278,6 +278,7 @@ pub struct Job {
 - `cb4daa6` - Core scheduler implementation with cross-platform support
 - `cb4daa6` - Complete module structure with job, parser, queue, persistence, executor, monitor
 - `cb4daa6` - Comprehensive test coverage for all components
+- `4d17147` - Fix executor and monitor test failures, resolve deadlocks
 
 ### **Milestones:**
 - [x] Design approved
