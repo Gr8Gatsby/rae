@@ -81,4 +81,7 @@ pub mod error {
     }
 
     pub type Result<T> = std::result::Result<T, RaeError>;
-} 
+}
+
+/// Scheduler module for job management and automation
+pub mod scheduler; 

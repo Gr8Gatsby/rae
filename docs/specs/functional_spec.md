@@ -52,6 +52,20 @@ Rae observes user work patterns (browser activity, file operations, system usage
 - **Secondary**: Linux (Ubuntu 20.04+, Debian 11+, Fedora 35+)
 - **Future**: Windows 11+ (Phase 2)
 
+### Cross-Platform Architecture Requirements
+- **Core Components**: All core components must be cross-platform compatible
+- **Scheduler Engine**: Platform-agnostic job scheduling with platform-specific adapters
+- **File Operations**: Cross-platform file system operations using Rust's standard library
+- **Process Management**: Native process spawning and management across platforms
+- **Time Handling**: Timezone-aware scheduling with proper DST handling
+- **Logging**: Platform-appropriate logging integration (syslog, Event Log, Console)
+- **Background Services**: Platform-appropriate daemon/service management
+
+### Platform-Specific Features
+- **macOS**: Native menu bar integration, system keychain encryption
+- **Linux**: systemd integration, syslog logging, standard Unix tools
+- **Windows**: Windows Task Scheduler integration, Event Log, registry integration
+
 ### Installation Method
 - **macOS**: Native `.dmg` installer with proper code signing
 - **Linux**: `.deb` and `.rpm` packages with systemd integration
@@ -439,6 +453,28 @@ Rae observes user work patterns (browser activity, file operations, system usage
 ---
 
 ## 11. Scheduling & Automation Engine
+
+### Cross-Platform Requirements
+
+#### Platform-Specific Scheduling
+- **macOS**: Native cron-like scheduling with timezone support
+- **Linux**: Standard cron syntax with systemd integration
+- **Windows**: Windows Task Scheduler adapter for future compatibility
+- **Timezone Handling**: Automatic timezone detection and conversion
+- **Daylight Saving Time**: Proper DST handling across all platforms
+
+#### Platform-Agnostic Features
+- **JSON Job Storage**: Platform-independent job persistence
+- **Async Job Execution**: Tokio runtime for cross-platform threading
+- **Error Recovery**: Platform-agnostic retry and failure handling
+- **Resource Limits**: Configurable memory and CPU limits per platform
+- **Process Management**: Native Rust process spawning across platforms
+
+#### Platform-Specific Adaptations
+- **File System Monitoring**: Platform-specific file system event APIs
+- **System Event Triggers**: Native system event integration per platform
+- **Background Process Management**: Platform-appropriate daemon/service handling
+- **Logging Integration**: Native logging systems (syslog, Event Log, Console)
 
 ### Scheduled Jobs
 - **Daily Digest**: Generated at 6:00 PM daily
