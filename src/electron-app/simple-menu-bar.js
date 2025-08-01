@@ -1,4 +1,4 @@
-const { app, Tray, Menu, nativeImage } = require('electron');
+const { app, Tray, Menu, nativeImage, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -122,6 +122,49 @@ function toggleJob(jobId, enabled) {
   });
 }
 
+async function showAddJobDialog() {
+  console.log('Opening job creation dialog...');
+  
+  const result = await dialog.showMessageBox({
+    type: 'info',
+    title: 'Add New Scheduled Job',
+    message: 'Job Creation',
+    detail: 'This will open a terminal window where you can enter the job details.\n\nRequired information:\n• Job name\n• Schedule (cron expression)\n• Command to execute\n\nExample: rae-agent scheduler add --name "daily-backup" --schedule "0 2 * * *" --command "backup-script.sh"',
+    buttons: ['Open Terminal', 'Cancel'],
+    defaultId: 0,
+    cancelId: 1
+  });
+  
+  if (result.response === 0) {
+    // Open terminal with the scheduler add command
+    console.log('Opening terminal for job creation...');
+    spawn(RUST_CLI_PATH, ['scheduler', 'add'], {
+      stdio: 'inherit'
+    });
+  }
+}
+
+async function showJobHistoryDialog() {
+  console.log('Opening job history dialog...');
+  
+  const result = await dialog.showMessageBox({
+    type: 'info',
+    title: 'Job History',
+    message: 'Scheduler Status',
+    detail: 'This will open a terminal window showing detailed job history and status information.',
+    buttons: ['Open Terminal', 'Cancel'],
+    defaultId: 0,
+    cancelId: 1
+  });
+  
+  if (result.response === 0) {
+    console.log('Opening terminal for job history...');
+    spawn(RUST_CLI_PATH, ['scheduler', 'status'], {
+      stdio: 'inherit'
+    });
+  }
+}
+
 function updateMenu() {
   let statusLabel = 'Status: Unknown';
   if (currentStatus === 'online') {
@@ -154,20 +197,14 @@ function updateMenu() {
   scheduledJobsMenu.push({
     label: '➕ Add New Job...',
     click: () => {
-      console.log('Opening job creation...');
-      spawn(RUST_CLI_PATH, ['scheduler', 'add'], {
-        stdio: 'inherit'
-      });
+      showAddJobDialog();
     }
   });
   
   scheduledJobsMenu.push({
     label: '📋 View History...',
     click: () => {
-      console.log('Opening job history...');
-      spawn(RUST_CLI_PATH, ['scheduler', 'status'], {
-        stdio: 'inherit'
-      });
+      showJobHistoryDialog();
     }
   });
   
