@@ -8,6 +8,7 @@ use tracing::{error, info};
 use tracing_subscriber;
 
 mod tray;
+mod scheduler;
 
 #[derive(Parser)]
 #[command(name = "rae-agent")]
@@ -51,6 +52,62 @@ enum Commands {
         /// Test command to run
         #[arg(default_value = "test")]
         test_cmd: String,
+    },
+    /// Manage scheduled jobs and automation
+    Scheduler {
+        #[command(subcommand)]
+        command: SchedulerCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum SchedulerCommands {
+    /// Add a new scheduled job
+    Add {
+        /// Job name
+        #[arg(short, long)]
+        name: String,
+        /// Cron schedule expression
+        #[arg(short, long)]
+        schedule: String,
+        /// Command to execute
+        #[arg(short, long)]
+        command: String,
+        /// Command arguments
+        #[arg(short, long)]
+        args: Option<Vec<String>>,
+        /// Timezone for scheduling
+        #[arg(short, long)]
+        timezone: Option<String>,
+        /// Job description
+        #[arg(short, long)]
+        description: Option<String>,
+    },
+    /// List all scheduled jobs
+    List {
+        /// Show detailed information
+        #[arg(short, long)]
+        verbose: bool,
+    },
+    /// Remove a scheduled job
+    Remove {
+        /// Job ID to remove
+        job_id: String,
+    },
+    /// Show job status and details
+    Status {
+        /// Job ID to check (optional, shows all if not specified)
+        job_id: Option<String>,
+    },
+    /// Enable a disabled job
+    Enable {
+        /// Job ID to enable
+        job_id: String,
+    },
+    /// Disable an enabled job
+    Disable {
+        /// Job ID to disable
+        job_id: String,
     },
 }
 
@@ -134,6 +191,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Running development test: {}", test_cmd);
             println!("Test completed successfully.");
         }
+        Some(Commands::Scheduler { command }) => {
+            handle_scheduler_command(command).await?;
+        }
         None => {
             println!("Local-first, privacy-respecting AI assistant");
             println!("\nUsage:");
@@ -141,9 +201,112 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("  rae-agent status    - Show system status");
             println!("  rae-agent summary   - Open today's summary");
             println!("  rae-agent config    - Open configuration");
+            println!("  rae-agent scheduler - Manage scheduled jobs");
             println!("  rae-agent --help    - Show this help");
         }
     }
 
+    Ok(())
+}
+
+/// Handle scheduler subcommands
+async fn handle_scheduler_command(command: &SchedulerCommands) -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize the scheduler
+    if let Err(e) = scheduler::cli::init_scheduler().await {
+        eprintln!("Failed to initialize scheduler: {}", e);
+        return Ok(());
+    }
+    
+    match command {
+        SchedulerCommands::Add { name, schedule, command, args, timezone, description } => {
+            println!("Adding scheduled job: {}", name);
+            println!("Schedule: {}", schedule);
+            println!("Command: {}", command);
+            
+            match scheduler::cli::add_job(
+                name.clone(),
+                schedule.clone(),
+                command.clone(),
+                args.clone(),
+                timezone.clone(),
+                description.clone(),
+            ).await {
+                Ok(job_id) => {
+                    println!("Job created successfully!");
+                    println!("Job ID: {}", job_id);
+                    println!("Next run: [to be calculated]");
+                }
+                Err(e) => {
+                    eprintln!("Failed to add job: {}", e);
+                }
+            }
+        }
+        
+        SchedulerCommands::List { verbose } => {
+            println!("Scheduled Jobs:");
+            match scheduler::cli::list_jobs(*verbose).await {
+                Ok(jobs) => {
+                    if jobs.is_empty() {
+                        println!("No scheduled jobs found.");
+                    } else {
+                        for job in jobs {
+                            println!("{}", job);
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to list jobs: {}", e);
+                }
+            }
+        }
+        
+        SchedulerCommands::Remove { job_id } => {
+            println!("Removing job: {}", job_id);
+            match scheduler::cli::remove_job(job_id).await {
+                Ok(_) => {
+                    println!("Job removed successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to remove job: {}", e);
+                }
+            }
+        }
+        
+        SchedulerCommands::Status { job_id } => {
+            match scheduler::cli::get_job_status(job_id.as_deref()).await {
+                Ok(status) => {
+                    println!("{}", status);
+                }
+                Err(e) => {
+                    eprintln!("Failed to get job status: {}", e);
+                }
+            }
+        }
+        
+        SchedulerCommands::Enable { job_id } => {
+            println!("Enabling job: {}", job_id);
+            match scheduler::cli::enable_job(job_id).await {
+                Ok(_) => {
+                    println!("Job enabled successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to enable job: {}", e);
+                }
+            }
+        }
+        
+        SchedulerCommands::Disable { job_id } => {
+            println!("Disabling job: {}", job_id);
+            match scheduler::cli::disable_job(job_id).await {
+                Ok(_) => {
+                    println!("Job disabled successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to disable job: {}", e);
+                }
+            }
+        }
+    }
+    
     Ok(())
 } 

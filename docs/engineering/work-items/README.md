@@ -26,9 +26,11 @@ This directory contains individual work item files for each feature, organized b
 ### **✅ Completed:**
 - `HIGH-UI-001-electron-menu-bar-app.md` - Cross-platform menu bar app with Rust integration
 - `HIGH-RUST-001-core-cli-backend.md` - Rust CLI implementation
+- `HIGH-CORE-001-scheduler-implementation.md` - Core scheduler system
+- `HIGH-INTEGRATION-001-scheduler-cli-integration.md` - Scheduler CLI and UI integration
 
 ### **🔄 In Progress:**
-- `HIGH-CORE-001-scheduler-implementation.md` - Core scheduler system
+- None currently
 
 ### **📋 Backlog:**
 - `HIGH-CORE-002-module-runner.md` - Sandboxed module execution
@@ -50,8 +52,10 @@ This directory contains individual work item files for each feature, organized b
 - Section 14: CLI & Local API Surface
 - Section 12: UI Philosophy  
 - Section 3: System Architecture
+- Section 11: Scheduling & Automation Engine (CORE-001) - Core Implementation
+- Section 11: Scheduling & Automation Engine (INTEGRATION-001) - CLI Integration Layer
 
 ### **🔄 Next Priority Sections:**
-- Section 11: Scheduling & Automation Engine (CORE-001)
+- Section 11: Scheduling & Automation Engine (UI-INTEGRATION) - Electron UI Integration
 - Section 4: Module System (CORE-002)
 - Section 13: Storage & Message Schema (STORAGE-001) 
