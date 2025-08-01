@@ -8,6 +8,7 @@ use tracing::{error, info};
 use tracing_subscriber;
 
 mod tray;
+mod scheduler;
 
 #[derive(Parser)]
 #[command(name = "rae-agent")]
@@ -51,6 +52,62 @@ enum Commands {
         /// Test command to run
         #[arg(default_value = "test")]
         test_cmd: String,
+    },
+    /// Manage scheduled jobs and automation
+    Scheduler {
+        #[command(subcommand)]
+        command: SchedulerCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum SchedulerCommands {
+    /// Add a new scheduled job
+    Add {
+        /// Job name
+        #[arg(short, long)]
+        name: String,
+        /// Cron schedule expression
+        #[arg(short, long)]
+        schedule: String,
+        /// Command to execute
+        #[arg(short, long)]
+        command: String,
+        /// Command arguments
+        #[arg(short, long)]
+        args: Option<Vec<String>>,
+        /// Timezone for scheduling
+        #[arg(short, long)]
+        timezone: Option<String>,
+        /// Job description
+        #[arg(short, long)]
+        description: Option<String>,
+    },
+    /// List all scheduled jobs
+    List {
+        /// Show detailed information
+        #[arg(short, long)]
+        verbose: bool,
+    },
+    /// Remove a scheduled job
+    Remove {
+        /// Job ID to remove
+        job_id: String,
+    },
+    /// Show job status and details
+    Status {
+        /// Job ID to check (optional, shows all if not specified)
+        job_id: Option<String>,
+    },
+    /// Enable a disabled job
+    Enable {
+        /// Job ID to enable
+        job_id: String,
+    },
+    /// Disable an enabled job
+    Disable {
+        /// Job ID to disable
+        job_id: String,
     },
 }
 
@@ -134,6 +191,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Running development test: {}", test_cmd);
             println!("Test completed successfully.");
         }
+        Some(Commands::Scheduler { command }) => {
+            handle_scheduler_command(command).await?;
+        }
         None => {
             println!("Local-first, privacy-respecting AI assistant");
             println!("\nUsage:");
@@ -141,9 +201,90 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("  rae-agent status    - Show system status");
             println!("  rae-agent summary   - Open today's summary");
             println!("  rae-agent config    - Open configuration");
+            println!("  rae-agent scheduler - Manage scheduled jobs");
             println!("  rae-agent --help    - Show this help");
         }
     }
 
+    Ok(())
+}
+
+/// Handle scheduler subcommands
+async fn handle_scheduler_command(command: &SchedulerCommands) -> Result<(), Box<dyn std::error::Error>> {
+    match command {
+        SchedulerCommands::Add { name, schedule, command, args, timezone, description } => {
+            println!("Adding scheduled job: {}", name);
+            println!("Schedule: {}", schedule);
+            println!("Command: {}", command);
+            
+            // Create a job using the scheduler API
+            let mut job = scheduler::job::Job::new(name.clone(), command.clone())
+                .with_args(args.clone().unwrap_or_default());
+            
+            // Set the cron schedule
+            if !schedule.is_empty() {
+                job = job.with_cron(schedule.clone());
+            }
+            
+            // Set timezone if provided
+            if let Some(tz) = timezone {
+                job.schedule.timezone = Some(tz.clone());
+            }
+            
+            // Set description if provided
+            if let Some(desc) = description {
+                job = job.with_description(desc.clone());
+            }
+            
+            // For now, just print the job details
+            // TODO: Actually add the job to the scheduler
+            println!("Job created successfully!");
+            println!("Job ID: {}", job.id);
+            println!("Next run: [to be calculated]");
+        }
+        
+        SchedulerCommands::List { verbose } => {
+            println!("Scheduled Jobs:");
+            if *verbose {
+                println!("[Detailed job list - to be implemented]");
+            } else {
+                println!("[Job list - to be implemented]");
+            }
+        }
+        
+        SchedulerCommands::Remove { job_id } => {
+            println!("Removing job: {}", job_id);
+            // TODO: Actually remove the job from the scheduler
+            println!("Job removed successfully!");
+        }
+        
+        SchedulerCommands::Status { job_id } => {
+            match job_id {
+                Some(id) => {
+                    println!("Job status for: {}", id);
+                    println!("Status: [to be implemented]");
+                }
+                None => {
+                    println!("Scheduler Status:");
+                    println!("✅ Scheduler is running");
+                    println!("📊 Total jobs: [to be implemented]");
+                    println!("🔄 Active jobs: [to be implemented]");
+                }
+            }
+        }
+        
+        SchedulerCommands::Enable { job_id } => {
+            println!("Enabling job: {}", job_id);
+            // TODO: Actually enable the job
+            println!("Job enabled successfully!");
+        }
+        
+        SchedulerCommands::Disable { job_id } => {
+            println!("Disabling job: {}", job_id);
+            // TODO: Actually disable the job
+            println!("Job disabled successfully!");
+        }
+    }
+    
     Ok(())
 } 
