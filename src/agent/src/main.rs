@@ -211,78 +211,100 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Handle scheduler subcommands
 async fn handle_scheduler_command(command: &SchedulerCommands) -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize the scheduler
+    if let Err(e) = scheduler::cli::init_scheduler().await {
+        eprintln!("Failed to initialize scheduler: {}", e);
+        return Ok(());
+    }
+    
     match command {
         SchedulerCommands::Add { name, schedule, command, args, timezone, description } => {
             println!("Adding scheduled job: {}", name);
             println!("Schedule: {}", schedule);
             println!("Command: {}", command);
             
-            // Create a job using the scheduler API
-            let mut job = scheduler::job::Job::new(name.clone(), command.clone())
-                .with_args(args.clone().unwrap_or_default());
-            
-            // Set the cron schedule
-            if !schedule.is_empty() {
-                job = job.with_cron(schedule.clone());
+            match scheduler::cli::add_job(
+                name.clone(),
+                schedule.clone(),
+                command.clone(),
+                args.clone(),
+                timezone.clone(),
+                description.clone(),
+            ).await {
+                Ok(job_id) => {
+                    println!("Job created successfully!");
+                    println!("Job ID: {}", job_id);
+                    println!("Next run: [to be calculated]");
+                }
+                Err(e) => {
+                    eprintln!("Failed to add job: {}", e);
+                }
             }
-            
-            // Set timezone if provided
-            if let Some(tz) = timezone {
-                job.schedule.timezone = Some(tz.clone());
-            }
-            
-            // Set description if provided
-            if let Some(desc) = description {
-                job = job.with_description(desc.clone());
-            }
-            
-            // For now, just print the job details
-            // TODO: Actually add the job to the scheduler
-            println!("Job created successfully!");
-            println!("Job ID: {}", job.id);
-            println!("Next run: [to be calculated]");
         }
         
         SchedulerCommands::List { verbose } => {
             println!("Scheduled Jobs:");
-            if *verbose {
-                println!("[Detailed job list - to be implemented]");
-            } else {
-                println!("[Job list - to be implemented]");
+            match scheduler::cli::list_jobs(*verbose).await {
+                Ok(jobs) => {
+                    if jobs.is_empty() {
+                        println!("No scheduled jobs found.");
+                    } else {
+                        for job in jobs {
+                            println!("{}", job);
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to list jobs: {}", e);
+                }
             }
         }
         
         SchedulerCommands::Remove { job_id } => {
             println!("Removing job: {}", job_id);
-            // TODO: Actually remove the job from the scheduler
-            println!("Job removed successfully!");
+            match scheduler::cli::remove_job(job_id).await {
+                Ok(_) => {
+                    println!("Job removed successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to remove job: {}", e);
+                }
+            }
         }
         
         SchedulerCommands::Status { job_id } => {
-            match job_id {
-                Some(id) => {
-                    println!("Job status for: {}", id);
-                    println!("Status: [to be implemented]");
+            match scheduler::cli::get_job_status(job_id.as_deref()).await {
+                Ok(status) => {
+                    println!("{}", status);
                 }
-                None => {
-                    println!("Scheduler Status:");
-                    println!("✅ Scheduler is running");
-                    println!("📊 Total jobs: [to be implemented]");
-                    println!("🔄 Active jobs: [to be implemented]");
+                Err(e) => {
+                    eprintln!("Failed to get job status: {}", e);
                 }
             }
         }
         
         SchedulerCommands::Enable { job_id } => {
             println!("Enabling job: {}", job_id);
-            // TODO: Actually enable the job
-            println!("Job enabled successfully!");
+            match scheduler::cli::enable_job(job_id).await {
+                Ok(_) => {
+                    println!("Job enabled successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to enable job: {}", e);
+                }
+            }
         }
         
         SchedulerCommands::Disable { job_id } => {
             println!("Disabling job: {}", job_id);
-            // TODO: Actually disable the job
-            println!("Job disabled successfully!");
+            match scheduler::cli::disable_job(job_id).await {
+                Ok(_) => {
+                    println!("Job disabled successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to disable job: {}", e);
+                }
+            }
         }
     }
     
