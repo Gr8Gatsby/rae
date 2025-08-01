@@ -7,6 +7,8 @@ console.log('🚀 Starting Rae Agent menu bar app...');
 let tray = null;
 let statusCheckInterval = null;
 let customIcon = null;
+let scheduledJobs = [];
+let schedulerStatus = 'unknown';
 
 // Path to the Rust CLI binary
 const RUST_CLI_PATH = path.join(__dirname, '../agent/target/release/rae-agent');
@@ -40,6 +42,86 @@ function updateStatusDisplay(status) {
   updateMenu();
 }
 
+function updateSchedulerStatus(status) {
+  if (schedulerStatus === status) return;
+  
+  schedulerStatus = status;
+  console.log(`Scheduler status changed to: ${status}`);
+  
+  // Update the menu to reflect new scheduler status
+  updateMenu();
+}
+
+function loadScheduledJobs() {
+  console.log('Loading scheduled jobs...');
+  
+  const listProcess = spawn(RUST_CLI_PATH, ['scheduler', 'list'], {
+    stdio: 'pipe'
+  });
+  
+  let output = '';
+  
+  listProcess.stdout.on('data', (data) => {
+    output += data.toString();
+  });
+  
+  listProcess.stderr.on('data', (data) => {
+    console.error('Scheduler list error:', data.toString());
+  });
+  
+  listProcess.on('close', (code) => {
+    if (code === 0) {
+      // Parse the job list output
+      const lines = output.split('\n');
+      scheduledJobs = [];
+      
+      for (const line of lines) {
+        if (line.includes(' - ') && !line.includes('Scheduled Jobs:')) {
+          const parts = line.split(' - ');
+          if (parts.length >= 3) {
+            const jobId = parts[0].trim();
+            const jobName = parts[1].trim();
+            const jobStatus = parts[2].trim();
+            
+            scheduledJobs.push({
+              id: jobId,
+              name: jobName,
+              status: jobStatus
+            });
+          }
+        }
+      }
+      
+      console.log(`Loaded ${scheduledJobs.length} scheduled jobs`);
+      updateSchedulerStatus('healthy');
+      updateMenu();
+    } else {
+      console.error('Failed to load scheduled jobs');
+      updateSchedulerStatus('error');
+      updateMenu();
+    }
+  });
+}
+
+function toggleJob(jobId, enabled) {
+  console.log(`${enabled ? 'Enabling' : 'Disabling'} job: ${jobId}`);
+  
+  const action = enabled ? 'enable' : 'disable';
+  const toggleProcess = spawn(RUST_CLI_PATH, ['scheduler', action, jobId], {
+    stdio: 'pipe'
+  });
+  
+  toggleProcess.on('close', (code) => {
+    if (code === 0) {
+      console.log(`Job ${action} successful`);
+      // Reload jobs to get updated status
+      loadScheduledJobs();
+    } else {
+      console.error(`Failed to ${action} job`);
+    }
+  });
+}
+
 function updateMenu() {
   let statusLabel = 'Status: Unknown';
   if (currentStatus === 'online') {
@@ -49,6 +131,52 @@ function updateMenu() {
   } else if (currentStatus === 'starting') {
     statusLabel = 'Status: Starting...';
   }
+  
+  // Build scheduled jobs menu items
+  const scheduledJobsMenu = [];
+  
+  if (scheduledJobs.length > 0) {
+    scheduledJobs.forEach(job => {
+      const isEnabled = job.status === 'Scheduled' || job.status === 'Running';
+      const statusIcon = isEnabled ? '🟢' : '🔴';
+      
+      scheduledJobsMenu.push({
+        label: `${statusIcon} ${job.name} - ${job.status}`,
+        click: () => {
+          toggleJob(job.id, !isEnabled);
+        }
+      });
+    });
+    
+    scheduledJobsMenu.push({ type: 'separator' });
+  }
+  
+  scheduledJobsMenu.push({
+    label: '➕ Add New Job...',
+    click: () => {
+      console.log('Opening job creation...');
+      spawn(RUST_CLI_PATH, ['scheduler', 'add'], {
+        stdio: 'inherit'
+      });
+    }
+  });
+  
+  scheduledJobsMenu.push({
+    label: '📋 View History...',
+    click: () => {
+      console.log('Opening job history...');
+      spawn(RUST_CLI_PATH, ['scheduler', 'status'], {
+        stdio: 'inherit'
+      });
+    }
+  });
+  
+  scheduledJobsMenu.push({
+    label: '🔄 Refresh Jobs',
+    click: () => {
+      loadScheduledJobs();
+    }
+  });
   
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -73,6 +201,11 @@ function updateMenu() {
           stdio: 'inherit'
         });
       }
+    },
+    { type: 'separator' },
+    {
+      label: '📅 Scheduled Jobs',
+      submenu: scheduledJobsMenu
     },
     { type: 'separator' },
     {
@@ -136,6 +269,9 @@ app.whenReady().then(() => {
     // Start status checking
     updateStatusDisplay('starting');
     checkRaeStatus();
+    
+    // Load scheduled jobs
+    loadScheduledJobs();
     
     // Check status every 30 seconds
     statusCheckInterval = setInterval(checkRaeStatus, 30000);

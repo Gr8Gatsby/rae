@@ -30,7 +30,7 @@ This directory contains individual work item files for each feature, organized b
 - `HIGH-INTEGRATION-001-scheduler-cli-integration.md` - Scheduler CLI and UI integration
 
 ### **🔄 In Progress:**
-- None currently
+- `HIGH-UI-002-scheduler-electron-integration.md` - Electron UI integration for scheduler
 
 ### **📋 Backlog:**
 - `HIGH-CORE-002-module-runner.md` - Sandboxed module execution
@@ -56,6 +56,6 @@ This directory contains individual work item files for each feature, organized b
 - Section 11: Scheduling & Automation Engine (INTEGRATION-001) - CLI Integration Layer
 
 ### **🔄 Next Priority Sections:**
-- Section 11: Scheduling & Automation Engine (UI-INTEGRATION) - Electron UI Integration
+- Section 11: Scheduling & Automation Engine (UI-INTEGRATION) - Electron UI Integration (IN PROGRESS)
 - Section 4: Module System (CORE-002)
 - Section 13: Storage & Message Schema (STORAGE-001) 
